@@ -1,0 +1,8 @@
+
+images/
+
+*.xml
+
+x64/
+*.user
+
