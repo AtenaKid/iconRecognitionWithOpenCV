@@ -14,7 +14,7 @@ private:
 	int trainPosDataNum = 35;
 	int totalNegDataNum = 107;
 	int trainNegDataNum = 100;
-	int totalPosDataNum = 40;
+	int totalPosDataNum = 41;
 	int backgroundNum = 27;
 
 	vector<string> saveHogDesFileName = {
