@@ -10,7 +10,7 @@ create by rosie
 #include <vector>
 #include <opencv2\opencv.hpp>
 #include <string>
-#include "iconRecog.h"
+#include "iconRecog.h"	
 
 using namespace std;
 using namespace cv;
@@ -27,6 +27,8 @@ int main() {
 	icon.trainingBySVM(); // 트레이닝
 	
 	icon.testSVMTrainedData(); // 성능평가
+
+	icon.testNewData("images/forTesting/back", 1);
 
 	return 0;
 

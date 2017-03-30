@@ -23,14 +23,14 @@ using namespace cv;
 
 void iconRecog::addDataSet(int mode) {
 
-	for (int i = 0; i < classifyNum + 1; ++i) {
+	char FullFileName[100];
 
-		char FullFileName[100];
-		for (int j = 0; j < trainDataNum; ++j) {
+	for (int i = 0; i < classifyNum; ++i) {
+
+		for (int j = 0; j < trainPosDataNum; ++j) {
 
 			sprintf_s(FullFileName, "%s%d.png", FirstFileName[i].c_str(), j);
 
-			printf("%s loaded! \n", FullFileName);
 
 			Mat img = imread(FullFileName);
 
@@ -41,7 +41,6 @@ void iconRecog::addDataSet(int mode) {
 				for (int k = 0; k < backgroundNum; k++) {
 
 					sprintf_s(backImageName, "./images/background/background%d.png", k);
-					printf("%s loaded! \n", backImageName);
 					Mat backimg = imread(backImageName);
 
 					resize(img, img, Size(64, 64), 0, 0, CV_INTER_LANCZOS4);
@@ -68,6 +67,48 @@ void iconRecog::addDataSet(int mode) {
 			}
 		}
 	}
+
+	for (int j = 0; j < trainNegDataNum; ++j) {
+
+		sprintf_s(FullFileName, "%s%d.png", FirstFileName[classifyNum].c_str(), j);
+
+		Mat img = imread(FullFileName);
+
+		if (mode == SUM_MODE) {
+
+			char backImageName[100];
+			char NewFileName[100];
+			for (int k = 0; k < backgroundNum; k++) {
+
+				sprintf_s(backImageName, "./images/background/background%d.png", k);
+				Mat backimg = imread(backImageName);
+
+				resize(img, img, Size(64, 64), 0, 0, CV_INTER_LANCZOS4);
+				resize(backimg, backimg, Size(64, 64), 0, 0, CV_INTER_LANCZOS4);
+
+				Mat img_gray, mask, mask_inv;
+				cvtColor(img, img_gray, CV_RGB2GRAY);
+				threshold(img_gray, mask, 200, 255, THRESH_BINARY);
+				bitwise_not(mask, mask_inv);
+
+				Mat kernal = Mat::ones(2, 2, CV_8U);
+				dilate(mask_inv, mask_inv, kernal);
+
+				Mat img_bg, img_fg;
+				bitwise_and(backimg, backimg, img_bg, mask = mask);
+				bitwise_and(img, img, img_fg, mask = mask_inv);
+
+				Mat sumImage;
+				add(img_bg, img_fg, sumImage);
+				sprintf_s(NewFileName, "%s%d_M%d.png", FirstFileName[classifyNum].c_str(), j, k);
+				imwrite(NewFileName, sumImage);
+			}
+
+		}
+	}
+
+	printf("addDataSet done!");
+
 }
 
 /*
@@ -81,16 +122,16 @@ void iconRecog::HOGfeature2XML() {
 
 	char FullFileName[100];
 
-	for (int i = 0; i < (classifyNum + 1); ++i) {
+	// ------------------------- positive data ----------------------------
+
+	for (int i = 0; i < classifyNum; i++) {
 
 		vector< vector < float> > v_descriptorsValues;
 		vector< vector < Point> > v_locations;
 
-		for (int j = 0; j < trainDataNum; ++j) {
+		for (int j = 0; j < trainPosDataNum; j++) {
 
 			sprintf_s(FullFileName, "%s%d.png", FirstFileName[i].c_str(), j);
-
-			printf("%s loaded! \n", FullFileName);
 
 			Mat img, img_gray;
 			img = imread(FullFileName);
@@ -117,7 +158,6 @@ void iconRecog::HOGfeature2XML() {
 
 				sprintf_s(NewFileName, "%s%d_M%d.png", FirstFileName[i].c_str(), j, k);
 
-				printf("%s loaded! \n", NewFileName);
 				Mat img, img_gray;
 				img = imread(NewFileName);
 				resize(img, img, Size(32, 32), 0, 0, CV_INTER_LANCZOS4);
@@ -150,6 +190,70 @@ void iconRecog::HOGfeature2XML() {
 
 	}
 
+	// ---------------------------------- Negative Data --------------------------------------------
+
+	vector< vector < float> > v_NdescriptorsValues;
+	vector< vector < Point> > v_Nlocations;
+
+	for (int j = 0; j < trainNegDataNum ; j++) {
+
+		sprintf_s(FullFileName, "%s%d.png", FirstFileName[classifyNum].c_str(), j);
+
+		Mat img, img_gray;
+		img = imread(FullFileName);
+
+		// --------------이미지 전처리-------------------
+
+		resize(img, img, Size(32, 32), 0, 0, CV_INTER_LANCZOS4);
+
+		cvtColor(img, img_gray, CV_RGB2GRAY);
+
+		// ------------- 특징 추출 -----------------------
+
+		HOGDescriptor d(Size(32, 32), Size(8, 8), Size(4, 4), Size(4, 4), 9);
+
+		vector< float> descriptorsValues;
+		vector< Point> locations;
+		d.compute(img_gray, descriptorsValues, Size(0, 0), Size(0, 0), locations);
+
+		v_NdescriptorsValues.push_back(descriptorsValues);
+		v_Nlocations.push_back(locations);
+
+		char NewFileName[100];
+		for (int k = 0; k < backgroundNum; k++) {
+
+			sprintf_s(NewFileName, "%s%d_M%d.png", FirstFileName[classifyNum].c_str(), j, k);
+
+			Mat img, img_gray;
+			img = imread(NewFileName);
+			resize(img, img, Size(32, 32), 0, 0, CV_INTER_LANCZOS4);
+			cvtColor(img, img_gray, CV_RGB2GRAY);
+			HOGDescriptor d(Size(32, 32), Size(8, 8), Size(4, 4), Size(4, 4), 9);
+
+			vector< float> descriptorsValues;
+			vector< Point> locations;
+			d.compute(img_gray, descriptorsValues, Size(0, 0), Size(0, 0), locations);
+
+			v_NdescriptorsValues.push_back(descriptorsValues);
+			v_Nlocations.push_back(locations);
+
+		}
+
+	}
+
+	FileStorage hogXml(saveHogDesFileName[classifyNum], FileStorage::WRITE);
+
+	int row = v_NdescriptorsValues.size(), col = v_NdescriptorsValues[0].size();
+
+	Mat M(row, col, CV_32F);
+	for (int i = 0; i < row; ++i)
+		memcpy(&(M.data[col * i * sizeof(float)]), v_NdescriptorsValues[i].data(), col * sizeof(float));
+
+	write(hogXml, "Descriptor_of_images", M);
+	hogXml.release();
+
+	printf("HOGfeature2XML donw!");
+
 }
 
 /*
@@ -165,7 +269,6 @@ void iconRecog::trainingBySVM() {
 	vector<Mat> positiveMat;
 	// ------------- 특징 정보가 담긴 xml 데이터 Mat으로 읽어 들임 ---------------
 	printf("1. feature data load \n");
-	printf("%s feature data load \n", saveHogDesFileName[classifyNum].c_str());
 	FileStorage read_NegativeXml(saveHogDesFileName[classifyNum], FileStorage::READ);
 	//Negative Mat
 	Mat nMat;
@@ -173,13 +276,9 @@ void iconRecog::trainingBySVM() {
 
 	int nRow, nCol;
 	nRow = nMat.rows; nCol = nMat.cols;
-	printf("rows: %d , cols: %d \n", nRow, nCol);
-
 	read_NegativeXml.release();
 
-	for (int i = 0; i < (int)saveHogDesFileName.size() - 1; ++i) {
-
-		printf("%s feature data load \n", saveHogDesFileName[i].c_str());
+	for (int i = 0; i < classifyNum; i++) {
 
 		FileStorage read_PositiveXml(saveHogDesFileName[i], FileStorage::READ);
 
@@ -187,7 +286,6 @@ void iconRecog::trainingBySVM() {
 		Mat pMat;
 		read_PositiveXml["Descriptor_of_images"] >> pMat;
 		positiveMat.push_back(pMat);
-		printf("rows: %d , cols: %d \n", positiveMat[i].rows, positiveMat[i].cols);
 
 		read_PositiveXml.release();
 
@@ -197,21 +295,20 @@ void iconRecog::trainingBySVM() {
 	printf("2. Make training data for SVM\n");
 	// rows == # of training data, cols == # of descriptor
 	Mat trainigData(positiveMat[0].rows * classifyNum + nRow, nCol, CV_32FC1);
-	Mat labels(nRow*(classifyNum + 1), 1, CV_32S, Scalar(classifyNum));
-
-	printf("label row: %d, cols: %d \n", labels.rows, labels.cols);
+	// initialize label with last integer value
+	Mat labels(positiveMat[0].rows * classifyNum + nRow, 1, CV_32S, Scalar(classifyNum));
 
 	int startData = 0;
 	int startLabel = 0;
-	// positive data set
-	for (int i = 0; i < (int)positiveMat.size(); ++i) {
-		memcpy(&(trainigData.data[startData]), positiveMat[i].data, sizeof(float) * positiveMat[i].cols * nRow);
-		labels.rowRange(startLabel, startLabel + nRow) = Scalar(i);
-		startLabel = startLabel + nRow;
-		startData = startData + sizeof(float) * positiveMat[i].cols * nRow; // 다음이 가르킬 위치
+	// input positive data set and label
+	for (int i = 0; i < classifyNum; i++) {
+		memcpy(&(trainigData.data[startData]), positiveMat[i].data, sizeof(float) * positiveMat[i].cols * positiveMat[i].rows);
+		labels.rowRange(startLabel, startLabel + positiveMat[i].rows) = Scalar(i);
+		startLabel = startLabel + positiveMat[i].rows;
+		startData = startData + sizeof(float) * positiveMat[i].cols * positiveMat[i].rows; 
 	}
-	// negative data set
-	memcpy(&(trainigData.data[startData]), nMat.data, sizeof(float) * nMat.cols * nMat.rows);
+	// input negative data set
+	memcpy(&(trainigData.data[startData]), nMat.data, sizeof(float) * nCol * nRow);
 
 	// ------------------- svm 모델 생성 및 트레이닝 후 모델을 xml 데이터로 저장 -------------------------------
 	printf("3. Set SVM parameter \n");
@@ -253,9 +350,9 @@ void iconRecog::testSVMTrainedData() {
 
 	// -------------- 테스트 데이터를 읽어들이면서 결과 예측 -----------------------------
 
-	for (int i = 0; i <= classifyNum; ++i) {
+	for (int i = 0; i < classifyNum; i++) {
 
-		for (int j = trainDataNum; j < totalDataNum; ++j) {
+		for (int j = trainPosDataNum; j < totalPosDataNum; j++) {
 
 			sprintf_s(FullFileName, "%s%d.png", FirstFileName[i].c_str(), j);
 
@@ -282,19 +379,11 @@ void iconRecog::testSVMTrainedData() {
 
 			int result = svm->predict(M);
 
-			if (i < classifyNum && result == i) {
+			if ( result == i) {
 				printf("%s --> %s [true] \n", FullFileName, iconClass[result].c_str());
 				trueResult++;
 			}
-			else if (i < classifyNum && result != i) {
-				printf("%s --> %s [false] \n", FullFileName, iconClass[result].c_str());
-				falseResult++;
-			}
-			else if (i == classifyNum && result >= i) {
-				printf("%s --> %s [true] \n", FullFileName, iconClass[result].c_str());
-				trueResult++;
-			}
-			else if (i == classifyNum && result < i) {
+			else if ( result != i) {
 				printf("%s --> %s [false] \n", FullFileName, iconClass[result].c_str());
 				falseResult++;
 			}
@@ -302,7 +391,45 @@ void iconRecog::testSVMTrainedData() {
 		}
 	}
 
-	printf("정확도: (%d/%d) % \n", trueResult, (trueResult + falseResult));
+	for (int j = trainNegDataNum; j < totalNegDataNum; j++) {
+
+		sprintf_s(FullFileName, "%s%d.png", FirstFileName[classifyNum].c_str(), j);
+
+		Mat img, img_gray;
+		img = imread(FullFileName);
+
+		resize(img, img, Size(32, 32), 0, 0, CV_INTER_LANCZOS4);
+
+		cvtColor(img, img_gray, CV_RGB2GRAY);
+
+
+		HOGDescriptor d(Size(32, 32), Size(8, 8), Size(4, 4), Size(4, 4), 9);
+
+		vector<float> descriptorsValues;
+		vector<Point> locations;
+		d.compute(img_gray, descriptorsValues, Size(0, 0), Size(0, 0), locations);
+
+		// ----------Classification----------------
+
+		int row = 1, col = descriptorsValues.size();
+
+		Mat M(row, col, CV_32F);
+		memcpy(&(M.data[0]), descriptorsValues.data(), col * sizeof(float));
+
+		int result = svm->predict(M);
+
+		if ( result >= classifyNum ) {
+			printf("%s --> %s [true] \n", FullFileName, iconClass[result].c_str());
+			trueResult++;
+		}
+		else if ( result < classifyNum) {
+			printf("%s --> %s [false] \n", FullFileName, iconClass[result].c_str());
+			falseResult++;
+		}
+
+	}
+
+	printf("Accuracy: ture vs. false(%d vs %d) --> %0.2f \% \n", trueResult, falseResult, (float) 100 * trueResult/(trueResult+falseResult) );
 }
 
 /*
@@ -312,36 +439,40 @@ void iconRecog::testSVMTrainedData() {
 */
 
 
-void iconRecog::testOneData(string fileName, int iconIndex) {
+void iconRecog::testNewData(string fileName, int count) {
 
 	Ptr<ml::SVM> svm = ml::SVM::create();
 
 	svm = ml::SVM::load("trainedSVM.xml");
 
-	Mat img, img_gray;
-	img = imread(fileName);
+	char FullFileName[100];
 
-	resize(img, img, Size(32, 32), 0, 0, CV_INTER_LANCZOS4);
+	for (int i = 0; i < count; i++) {
 
-	cvtColor(img, img_gray, CV_RGB2GRAY);
+		sprintf_s(FullFileName, "%s%d.png", fileName.c_str(), i);
 
-	HOGDescriptor d(Size(32, 32), Size(8, 8), Size(4, 4), Size(4, 4), 9);
+		Mat img, img_gray;
+		img = imread(FullFileName);
 
-	vector<float> descriptorsValues;
-	vector<Point> locations;
-	d.compute(img_gray, descriptorsValues, Size(0, 0), Size(0, 0), locations);
+		resize(img, img, Size(32, 32), 0, 0, CV_INTER_LANCZOS4);
 
-	int row = 1, col = descriptorsValues.size();
+		cvtColor(img, img_gray, CV_RGB2GRAY);
 
-	Mat M(row, col, CV_32F);
-	memcpy(&(M.data[0]), descriptorsValues.data(), col * sizeof(float));
+		HOGDescriptor d(Size(32, 32), Size(8, 8), Size(4, 4), Size(4, 4), 9);
 
-	int result = svm->predict(M);
+		vector<float> descriptorsValues;
+		vector<Point> locations;
+		d.compute(img_gray, descriptorsValues, Size(0, 0), Size(0, 0), locations);
 
-	if (result == iconIndex) {
-		printf("%s --> %s [true!] \n", fileName.c_str(), iconClass[result].c_str());
+		int row = 1, col = descriptorsValues.size();
+
+		Mat M(row, col, CV_32F);
+		memcpy(&(M.data[0]), descriptorsValues.data(), col * sizeof(float));
+
+		int result = svm->predict(M);
+
+		printf("%s --> %s \n", FullFileName, iconClass[result].c_str());
+		
 	}
-	else
-		printf("%s --> %s [False!] \n", fileName.c_str(), iconClass[result].c_str());
 
 }
