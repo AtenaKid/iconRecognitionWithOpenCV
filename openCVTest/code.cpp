@@ -4,112 +4,8 @@ create by rosie
 2017.03.30
 
 */
-
-#include <iostream>
-#include <string>
-#include <vector>
-#include <opencv2\opencv.hpp>
 #include "iconRecog.h"
 
-
-using namespace std;
-using namespace cv;
-
-/*
-
-아이콘과 배경 이미지를 합성한 새로운 데이터를 생성
-
-*/
-
-void iconRecog::addDataSet(int mode) {
-
-	char FullFileName[100];
-
-	for (int i = 0; i < classifyNum; ++i) {
-
-		for (int j = 0; j < trainPosDataNum; ++j) {
-
-			sprintf_s(FullFileName, "%s%d.png", FirstFileName[i].c_str(), j);
-
-
-			Mat img = imread(FullFileName);
-
-			if (mode == SUM_MODE) {
-
-				char backImageName[100];
-				char NewFileName[100];
-				for (int k = 0; k < backgroundNum; k++) {
-
-					sprintf_s(backImageName, "./images/background/background%d.png", k);
-					Mat backimg = imread(backImageName);
-
-					resize(img, img, Size(64, 64), 0, 0, CV_INTER_LANCZOS4);
-					resize(backimg, backimg, Size(64, 64), 0, 0, CV_INTER_LANCZOS4);
-
-					Mat img_gray, mask, mask_inv;
-					cvtColor(img, img_gray, CV_RGB2GRAY);
-					threshold(img_gray, mask, 200, 255, THRESH_BINARY);
-					bitwise_not(mask, mask_inv);
-
-					Mat kernal = Mat::ones(2, 2, CV_8U);
-					dilate(mask_inv, mask_inv, kernal);
-
-					Mat img_bg, img_fg;
-					bitwise_and(backimg, backimg, img_bg, mask = mask);
-					bitwise_and(img, img, img_fg, mask = mask_inv);
-
-					Mat sumImage;
-					add(img_bg, img_fg, sumImage);
-					sprintf_s(NewFileName, "%s%d_M%d.png", FirstFileName[i].c_str(), j, k);
-					imwrite(NewFileName, sumImage);
-				}
-
-			}
-		}
-	}
-
-	for (int j = 0; j < trainNegDataNum; ++j) {
-
-		sprintf_s(FullFileName, "%s%d.png", FirstFileName[classifyNum].c_str(), j);
-
-		Mat img = imread(FullFileName);
-
-		if (mode == SUM_MODE) {
-
-			char backImageName[100];
-			char NewFileName[100];
-			for (int k = 0; k < backgroundNum; k++) {
-
-				sprintf_s(backImageName, "./images/background/background%d.png", k);
-				Mat backimg = imread(backImageName);
-
-				resize(img, img, Size(64, 64), 0, 0, CV_INTER_LANCZOS4);
-				resize(backimg, backimg, Size(64, 64), 0, 0, CV_INTER_LANCZOS4);
-
-				Mat img_gray, mask, mask_inv;
-				cvtColor(img, img_gray, CV_RGB2GRAY);
-				threshold(img_gray, mask, 200, 255, THRESH_BINARY);
-				bitwise_not(mask, mask_inv);
-
-				Mat kernal = Mat::ones(2, 2, CV_8U);
-				dilate(mask_inv, mask_inv, kernal);
-
-				Mat img_bg, img_fg;
-				bitwise_and(backimg, backimg, img_bg, mask = mask);
-				bitwise_and(img, img, img_fg, mask = mask_inv);
-
-				Mat sumImage;
-				add(img_bg, img_fg, sumImage);
-				sprintf_s(NewFileName, "%s%d_M%d.png", FirstFileName[classifyNum].c_str(), j, k);
-				imwrite(NewFileName, sumImage);
-			}
-
-		}
-	}
-
-	printf("addDataSet done!");
-
-}
 
 /*
 
@@ -131,7 +27,10 @@ void iconRecog::HOGfeature2XML() {
 
 		for (int j = 0; j < trainPosDataNum; j++) {
 
-			sprintf_s(FullFileName, "%s%d.png", FirstFileName[i].c_str(), j);
+			sprintf_s(FullFileName, "%s%d.png", trainFileName[i].c_str(), j);
+
+			printf(FullFileName);
+			printf("\n");
 
 			Mat img, img_gray;
 			img = imread(FullFileName);
@@ -153,31 +52,12 @@ void iconRecog::HOGfeature2XML() {
 			v_descriptorsValues.push_back(descriptorsValues);
 			v_locations.push_back(locations);
 
-			char NewFileName[100];
-			for (int k = 0; k < backgroundNum; k++) {
-
-				sprintf_s(NewFileName, "%s%d_M%d.png", FirstFileName[i].c_str(), j, k);
-
-				Mat img, img_gray;
-				img = imread(NewFileName);
-				resize(img, img, Size(32, 32), 0, 0, CV_INTER_LANCZOS4);
-				cvtColor(img, img_gray, CV_RGB2GRAY);
-				HOGDescriptor d(Size(32, 32), Size(8, 8), Size(4, 4), Size(4, 4), 9);
-
-				vector< float> descriptorsValues;
-				vector< Point> locations;
-				d.compute(img_gray, descriptorsValues, Size(0, 0), Size(0, 0), locations);
-
-				v_descriptorsValues.push_back(descriptorsValues);
-				v_locations.push_back(locations);
-
-			}
 
 		}
 
 		// -------------------- 특징 정보 xml 데이터로 저장 ----------------
 
-		FileStorage hogXml(saveHogDesFileName[i], FileStorage::WRITE);
+		FileStorage hogXml(hogFileName[i], FileStorage::WRITE);
 
 		int row = v_descriptorsValues.size(), col = v_descriptorsValues[0].size();
 
@@ -197,7 +77,7 @@ void iconRecog::HOGfeature2XML() {
 
 	for (int j = 0; j < trainNegDataNum ; j++) {
 
-		sprintf_s(FullFileName, "%s%d.png", FirstFileName[classifyNum].c_str(), j);
+		sprintf_s(FullFileName, "%s%d.png", trainFileName[classifyNum].c_str(), j);
 
 		Mat img, img_gray;
 		img = imread(FullFileName);
@@ -219,29 +99,10 @@ void iconRecog::HOGfeature2XML() {
 		v_NdescriptorsValues.push_back(descriptorsValues);
 		v_Nlocations.push_back(locations);
 
-		char NewFileName[100];
-		for (int k = 0; k < backgroundNum; k++) {
-
-			sprintf_s(NewFileName, "%s%d_M%d.png", FirstFileName[classifyNum].c_str(), j, k);
-
-			Mat img, img_gray;
-			img = imread(NewFileName);
-			resize(img, img, Size(32, 32), 0, 0, CV_INTER_LANCZOS4);
-			cvtColor(img, img_gray, CV_RGB2GRAY);
-			HOGDescriptor d(Size(32, 32), Size(8, 8), Size(4, 4), Size(4, 4), 9);
-
-			vector< float> descriptorsValues;
-			vector< Point> locations;
-			d.compute(img_gray, descriptorsValues, Size(0, 0), Size(0, 0), locations);
-
-			v_NdescriptorsValues.push_back(descriptorsValues);
-			v_Nlocations.push_back(locations);
-
-		}
 
 	}
 
-	FileStorage hogXml(saveHogDesFileName[classifyNum], FileStorage::WRITE);
+	FileStorage hogXml(hogFileName[classifyNum], FileStorage::WRITE);
 
 	int row = v_NdescriptorsValues.size(), col = v_NdescriptorsValues[0].size();
 
@@ -252,7 +113,7 @@ void iconRecog::HOGfeature2XML() {
 	write(hogXml, "Descriptor_of_images", M);
 	hogXml.release();
 
-	printf("HOGfeature2XML donw!");
+	printf("HOGfeature2XML donw! \n");
 
 }
 
@@ -269,7 +130,7 @@ void iconRecog::trainingBySVM() {
 	vector<Mat> positiveMat;
 	// ------------- 특징 정보가 담긴 xml 데이터 Mat으로 읽어 들임 ---------------
 	printf("1. feature data load \n");
-	FileStorage read_NegativeXml(saveHogDesFileName[classifyNum], FileStorage::READ);
+	FileStorage read_NegativeXml(hogFileName[classifyNum], FileStorage::READ);
 	//Negative Mat
 	Mat nMat;
 	read_NegativeXml["Descriptor_of_images"] >> nMat;
@@ -280,7 +141,7 @@ void iconRecog::trainingBySVM() {
 
 	for (int i = 0; i < classifyNum; i++) {
 
-		FileStorage read_PositiveXml(saveHogDesFileName[i], FileStorage::READ);
+		FileStorage read_PositiveXml(hogFileName[i], FileStorage::READ);
 
 		//Positive Mat
 		Mat pMat;
@@ -352,9 +213,9 @@ void iconRecog::testSVMTrainedData() {
 
 	for (int i = 0; i < classifyNum; i++) {
 
-		for (int j = trainPosDataNum; j < totalPosDataNum; j++) {
+		for (int j = 0; j < testPosDataNum ; j++) {
 
-			sprintf_s(FullFileName, "%s%d.png", FirstFileName[i].c_str(), j);
+			sprintf_s(FullFileName, "%s%d.png", trainFileName[i].c_str(), j);
 
 			Mat img, img_gray;
 			img = imread(FullFileName);
@@ -391,9 +252,9 @@ void iconRecog::testSVMTrainedData() {
 		}
 	}
 
-	for (int j = trainNegDataNum; j < totalNegDataNum; j++) {
+	for (int j = 0 ; j < testNegDataNum; j++) {
 
-		sprintf_s(FullFileName, "%s%d.png", FirstFileName[classifyNum].c_str(), j);
+		sprintf_s(FullFileName, "%s%d.png", trainFileName[classifyNum].c_str(), j);
 
 		Mat img, img_gray;
 		img = imread(FullFileName);
@@ -437,42 +298,3 @@ void iconRecog::testSVMTrainedData() {
 이미지 한개만 테스트하고 싶을 때
 
 */
-
-
-void iconRecog::testNewData(string fileName, int count) {
-
-	Ptr<ml::SVM> svm = ml::SVM::create();
-
-	svm = ml::SVM::load("trainedSVM.xml");
-
-	char FullFileName[100];
-
-	for (int i = 0; i < count; i++) {
-
-		sprintf_s(FullFileName, "%s%d.png", fileName.c_str(), i);
-
-		Mat img, img_gray;
-		img = imread(FullFileName);
-
-		resize(img, img, Size(32, 32), 0, 0, CV_INTER_LANCZOS4);
-
-		cvtColor(img, img_gray, CV_RGB2GRAY);
-
-		HOGDescriptor d(Size(32, 32), Size(8, 8), Size(4, 4), Size(4, 4), 9);
-
-		vector<float> descriptorsValues;
-		vector<Point> locations;
-		d.compute(img_gray, descriptorsValues, Size(0, 0), Size(0, 0), locations);
-
-		int row = 1, col = descriptorsValues.size();
-
-		Mat M(row, col, CV_32F);
-		memcpy(&(M.data[0]), descriptorsValues.data(), col * sizeof(float));
-
-		int result = svm->predict(M);
-
-		printf("%s --> %s \n", FullFileName, iconClass[result].c_str());
-		
-	}
-
-}
