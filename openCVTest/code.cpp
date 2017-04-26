@@ -176,18 +176,20 @@ void iconRecog::trainingBySVM() {
 
 	Ptr<ml::SVM> svm = ml::SVM::create();
 
-	svm->setType(ml::SVM::NU_SVC);
-	svm->setKernel(ml::SVM::LINEAR);
+	svm->setType(ml::SVM::C_SVC);
+	svm->setKernel(ml::SVM::POLY);
+	svm->setDegree(2);
 	svm->setGamma(1);
 	svm->setCoef0(0);
-	svm->setNu(0.2);
+	//svm->setNu(0.2);
+	svm->setC(2);
 	svm->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER, 10000, 1e-6));
 
 	printf("4. Training \n");
 
 	svm->train(trainigData, ml::ROW_SAMPLE, labels);
 
-	printf("5. SVM XML svae \n");
+	printf("5. SVM XML save \n");
 	svm->save("trainedSVM.xml");
 
 }
