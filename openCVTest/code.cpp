@@ -27,23 +27,20 @@ void iconRecog::HOGfeature2XML() {
 
 		for (int j = 0; j < trainPosDataNum; j++) {
 
-			sprintf_s(FullFileName, "%s%d.png", trainFileName[i].c_str(), j);
-
-			printf(FullFileName);
-			printf("\n");
+			sprintf_s(FullFileName, "%s%d.png", FileName[i].c_str(), j);
 
 			Mat img, img_gray;
 			img = imread(FullFileName);
 
 			// --------------이미지 전처리-------------------
 
-			resize(img, img, Size(32, 32), 0, 0, CV_INTER_LANCZOS4);
+			resize(img, img, Size(24, 24), 0, 0, CV_INTER_LANCZOS4);
 
 			cvtColor(img, img_gray, CV_RGB2GRAY);
 
 			// ------------- 특징 추출 -----------------------
 
-			HOGDescriptor d(Size(32, 32), Size(8, 8), Size(4, 4), Size(4, 4), 9);
+			HOGDescriptor d(Size(24, 24), Size(8, 8), Size(4, 4), Size(4, 4), 9);
 
 			vector< float> descriptorsValues;
 			vector< Point> locations;
@@ -77,20 +74,20 @@ void iconRecog::HOGfeature2XML() {
 
 	for (int j = 0; j < trainNegDataNum ; j++) {
 
-		sprintf_s(FullFileName, "%s%d.png", trainFileName[classifyNum].c_str(), j);
+		sprintf_s(FullFileName, "%s%d.png", FileName[classifyNum].c_str(), j);
 
 		Mat img, img_gray;
 		img = imread(FullFileName);
 
 		// --------------이미지 전처리-------------------
 
-		resize(img, img, Size(32, 32), 0, 0, CV_INTER_LANCZOS4);
+		resize(img, img, Size(24, 24), 0, 0, CV_INTER_LANCZOS4);
 
 		cvtColor(img, img_gray, CV_RGB2GRAY);
 
 		// ------------- 특징 추출 -----------------------
 
-		HOGDescriptor d(Size(32, 32), Size(8, 8), Size(4, 4), Size(4, 4), 9);
+		HOGDescriptor d(Size(24, 24), Size(8, 8), Size(4, 4), Size(4, 4), 9);
 
 		vector< float> descriptorsValues;
 		vector< Point> locations;
@@ -178,12 +175,11 @@ void iconRecog::trainingBySVM() {
 
 	svm->setType(ml::SVM::C_SVC);
 	svm->setKernel(ml::SVM::POLY);
-	svm->setDegree(2);
-	svm->setGamma(1);
+	svm->setDegree(3);
+	svm->setGamma(2);
 	svm->setCoef0(0);
-	//svm->setNu(0.2);
 	svm->setC(2);
-	svm->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER, 10000, 1e-6));
+	svm->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER, 1000, 1e-6));
 
 	printf("4. Training \n");
 
@@ -215,19 +211,19 @@ void iconRecog::testSVMTrainedData() {
 
 	for (int i = 0; i < classifyNum; i++) {
 
-		for (int j = 0; j < testPosDataNum ; j++) {
+		for (int j = trainPosDataNum; j < totalPosDataNum ; j++) {
 
-			sprintf_s(FullFileName, "%s%d.png", trainFileName[i].c_str(), j);
+			sprintf_s(FullFileName, "%s%d.png", FileName[i].c_str(), j);
 
 			Mat img, img_gray;
 			img = imread(FullFileName);
 
-			resize(img, img, Size(32, 32), 0, 0, CV_INTER_LANCZOS4);
+			resize(img, img, Size(24, 24), 0, 0, CV_INTER_LANCZOS4);
 
 			cvtColor(img, img_gray, CV_RGB2GRAY);
 
 
-			HOGDescriptor d(Size(32, 32), Size(8, 8), Size(4, 4), Size(4, 4), 9);
+			HOGDescriptor d(Size(24, 24), Size(8, 8), Size(4, 4), Size(4, 4), 9);
 
 			vector<float> descriptorsValues;
 			vector<Point> locations;
@@ -254,19 +250,19 @@ void iconRecog::testSVMTrainedData() {
 		}
 	}
 
-	for (int j = 0 ; j < testNegDataNum; j++) {
+	for (int j = trainNegDataNum ; j < totalNegDataNum; j++) {
 
-		sprintf_s(FullFileName, "%s%d.png", trainFileName[classifyNum].c_str(), j);
+		sprintf_s(FullFileName, "%s%d.png", FileName[classifyNum].c_str(), j);
 
 		Mat img, img_gray;
 		img = imread(FullFileName);
 
-		resize(img, img, Size(32, 32), 0, 0, CV_INTER_LANCZOS4);
+		resize(img, img, Size(24, 24), 0, 0, CV_INTER_LANCZOS4);
 
 		cvtColor(img, img_gray, CV_RGB2GRAY);
 
 
-		HOGDescriptor d(Size(32, 32), Size(8, 8), Size(4, 4), Size(4, 4), 9);
+		HOGDescriptor d(Size(24, 24), Size(8, 8), Size(4, 4), Size(4, 4), 9);
 
 		vector<float> descriptorsValues;
 		vector<Point> locations;
