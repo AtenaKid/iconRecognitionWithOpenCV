@@ -179,7 +179,8 @@ void iconRecog::trainingBySVM() {
 	svm->setGamma(2);
 	svm->setCoef0(0);
 	svm->setC(2);
-	svm->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER, 1000, 1e-6));
+//	svm->setNu(0.2);
+	svm->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER, 5000, 1e-6));
 
 	printf("4. Training \n");
 
@@ -222,7 +223,6 @@ void iconRecog::testSVMTrainedData() {
 
 			cvtColor(img, img_gray, CV_RGB2GRAY);
 
-
 			HOGDescriptor d(Size(24, 24), Size(8, 8), Size(4, 4), Size(4, 4), 9);
 
 			vector<float> descriptorsValues;
@@ -260,7 +260,6 @@ void iconRecog::testSVMTrainedData() {
 		resize(img, img, Size(24, 24), 0, 0, CV_INTER_LANCZOS4);
 
 		cvtColor(img, img_gray, CV_RGB2GRAY);
-
 
 		HOGDescriptor d(Size(24, 24), Size(8, 8), Size(4, 4), Size(4, 4), 9);
 
