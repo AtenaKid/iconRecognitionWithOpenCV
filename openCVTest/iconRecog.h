@@ -13,11 +13,11 @@ class iconRecog {
 private:
 	int classifyNum = 17;
 	
-	int trainPosDataNum = 30;
-	int totalPosDataNum = 41; //41
+	int trainPosDataNum = 58;
+	int totalPosDataNum = 70; //70
 	
-	int trainNegDataNum = 50;
-	int totalNegDataNum = 100; //318
+	int trainNegDataNum = 300;
+	int totalNegDataNum = 318; //318
 	
 	vector<string> hogFileName = {
 		"PositiveBack.xml",
@@ -63,24 +63,24 @@ private:
 	};
 
 	vector<string> FileName = {
-		"./icon_image/back/back",
-		"./icon_image/close/close",
-		"./icon_image/delete/delete",
-		"./icon_image/download/download",
-		"./icon_image/edit/edit",
-		"./icon_image/home/home",
-		"./icon_image/info/info",
-		"./icon_image/love/love",
-		"./icon_image/menu/menu",
-		"./icon_image/minus/minus",
-		"./icon_image/plus/plus",
-		"./icon_image/profile/profile",
-		"./icon_image/search/search",
-		"./icon_image/settings/settings",
-		"./icon_image/share/share",
-		"./icon_image/shopBag/shopBag",
-		"./icon_image/shopping/shopping",
-		"./icon_image/negative/negative"
+		"./icon_image/back/back/back",
+		"./icon_image/close/close/close",
+		"./icon_image/delete/delete/delete",
+		"./icon_image/download/download/download",
+		"./icon_image/edit/edit/edit",
+		"./icon_image/home/home/home",
+		"./icon_image/info/info/info",
+		"./icon_image/love/love/love",
+		"./icon_image/menu/menu/menu",
+		"./icon_image/minus/minus/minus",
+		"./icon_image/plus/plus/plus",
+		"./icon_image/profile/profile/profile",
+		"./icon_image/search/search/search",
+		"./icon_image/settings/settings/settings",
+		"./icon_image/share/share/share",
+		"./icon_image/shopBag/shopBag/shopBag",
+		"./icon_image/shopping/shopping/shopping",
+		"./icon_image/negative/negative/negative"
 	};
 
 
