@@ -13,10 +13,10 @@ class iconRecog {
 private:
 	int classifyNum = 17;
 	
-	int trainPosDataNum = 58;
+	int trainPosDataNum = 65;
 	int totalPosDataNum = 70; //70
 	
-	int trainNegDataNum = 300;
+	int trainNegDataNum = 310;
 	int totalNegDataNum = 318; //318
 	
 	vector<string> hogFileName = {
@@ -89,4 +89,6 @@ public:
 	void HOGfeature2XML();
 	void trainingBySVM();
 	void testSVMTrainedData();
+	Mat getHogDescriptorVisual(const Mat& color_origImg, vector<float>& descriptorValues, const Size & size);
+
 };

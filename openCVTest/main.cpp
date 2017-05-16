@@ -20,7 +20,7 @@ int main() {
 
 	iconRecog icon;
 
-	icon.HOGfeature2XML(); // 특징 추출
+//	icon.HOGfeature2XML(); // 특징 추출
 	
 	icon.trainingBySVM(); // 트레이닝
 	
