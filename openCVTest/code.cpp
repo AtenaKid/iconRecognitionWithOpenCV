@@ -34,13 +34,13 @@ void iconRecog::HOGfeature2XML() {
 
 			// --------------이미지 전처리-------------------
 
-			resize(img, img, Size(16, 16), 0, 0, CV_INTER_LANCZOS4);
+			resize(img, img, Size(WIN, WIN), 0, 0, CV_INTER_LANCZOS4);
 
 			cvtColor(img, img_gray, CV_RGB2GRAY);
 
 			// ------------- 특징 추출 -----------------------
 
-			HOGDescriptor d(Size(16, 16), Size(8, 8), Size(4, 4), Size(4, 4), 9);
+			HOGDescriptor d(Size(WIN, WIN), Size(BLOCK, BLOCK), Size(STRIDE, STRIDE), Size(CELL, CELL), BIN);
 
 			vector< float> descriptorsValues;
 			vector< Point> locations;
@@ -81,13 +81,13 @@ void iconRecog::HOGfeature2XML() {
 
 		// --------------이미지 전처리-------------------
 
-		resize(img, img, Size(16, 16), 0, 0, CV_INTER_LANCZOS4);
+		resize(img, img, Size(WIN, WIN), 0, 0, CV_INTER_LANCZOS4);
 
 		cvtColor(img, img_gray, CV_RGB2GRAY);
 
 		// ------------- 특징 추출 -----------------------
 
-		HOGDescriptor d(Size(16, 16), Size(8, 8), Size(4, 4), Size(4, 4), 9);
+		HOGDescriptor d(Size(WIN, WIN), Size(BLOCK, BLOCK), Size(STRIDE, STRIDE), Size(CELL, CELL), BIN);
 
 		vector< float> descriptorsValues;
 		vector< Point> locations;
@@ -175,12 +175,12 @@ void iconRecog::trainingBySVM() {
 
 	svm->setType(ml::SVM::C_SVC);
 	svm->setKernel(ml::SVM::POLY);
-	svm->setDegree(4);
-	svm->setGamma(3);
+	svm->setDegree(3);
+	svm->setGamma(2);
 	svm->setCoef0(0);
-	svm->setC(200); // 4
+	svm->setC(200);
 //	svm->setNu(0.2);
-	svm->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER, 10000, 1e-6));
+	svm->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER, 10000, 1e-3));
 
 	printf("4. Training \n");
 
@@ -219,11 +219,11 @@ void iconRecog::testSVMTrainedData() {
 			Mat img, img_gray;
 			img = imread(FullFileName);
 
-			resize(img, img, Size(16, 16), 0, 0, CV_INTER_LANCZOS4);
+			resize(img, img, Size(WIN, WIN), 0, 0, CV_INTER_LANCZOS4);
 
 			cvtColor(img, img_gray, CV_RGB2GRAY);
 
-			HOGDescriptor d(Size(16, 16), Size(8, 8), Size(4, 4), Size(4, 4), 9); // 40도 단위, 셀사이즈 4X4
+			HOGDescriptor d(Size(WIN, WIN), Size(BLOCK, BLOCK), Size(STRIDE, STRIDE), Size(CELL, CELL), BIN); // 40도 단위, 셀사이즈 4X4
 
 			vector<float> descriptorsValues;
 			vector<Point> locations;
@@ -245,7 +245,7 @@ void iconRecog::testSVMTrainedData() {
 			else if ( result != i) {
 				printf("%s --> %s [false] \n", FullFileName, iconClass[result].c_str());
 				falseResult++;
-				Mat mat = getHogDescriptorVisual(img_gray, descriptorsValues, Size(16, 16));
+				Mat mat = getHogDescriptorVisual(img_gray, descriptorsValues, Size(WIN, WIN));
 				char name[100];
 				sprintf_s(name, "%s%d%s.png", FullFileName, 2, iconClass[result].c_str());
 				imwrite(name, mat);
@@ -261,12 +261,11 @@ void iconRecog::testSVMTrainedData() {
 		Mat img, img_gray;
 		img = imread(FullFileName);
 
-		resize(img, img, Size(16, 16), 0, 0, CV_INTER_LANCZOS4);
+		resize(img, img, Size(WIN, WIN), 0, 0, CV_INTER_LANCZOS4);
 
 		cvtColor(img, img_gray, CV_RGB2GRAY);
 
-		HOGDescriptor d(Size(16, 16), Size(8, 8), Size(4, 4), Size(4, 4), 9);
-		HOGDescriptor s();
+		HOGDescriptor d(Size(WIN, WIN), Size(BLOCK, BLOCK), Size(STRIDE, STRIDE), Size(CELL, CELL), BIN);
 
 		vector<float> descriptorsValues;
 		vector<Point> locations;
@@ -288,7 +287,7 @@ void iconRecog::testSVMTrainedData() {
 		else if ( result < classifyNum) {
 			printf("%s --> %s [false] \n", FullFileName, iconClass[result].c_str());
 			falseResult++;
-			Mat mat = getHogDescriptorVisual(img_gray, descriptorsValues, Size(16, 16));
+			Mat mat = getHogDescriptorVisual(img_gray, descriptorsValues, Size(WIN, WIN));
 			char name[100];
 			sprintf_s(name, "%s%d%s.png", FullFileName, 2, iconClass[result].c_str());
 			imwrite(name, mat);
@@ -307,8 +306,8 @@ Mat iconRecog::getHogDescriptorVisual(const Mat& color_origImg, vector<float>& d
 	Mat visu;
 	resize(color_origImg, visu, Size((int)(color_origImg.cols*zoomFac), (int)(color_origImg.rows*zoomFac)));
 
-	int cellSize = 4;
-	int gradientBinSize = 9;
+	int cellSize = CELL;
+	int gradientBinSize = BIN;
 	float radRangeForOneBin = (float)(CV_PI / (float)gradientBinSize); // dividing 180 into 9 bins, how large (in rad) is one bin?
 
 																	   // prepare data structure: 9 orientation / gradient strenghts for each cell

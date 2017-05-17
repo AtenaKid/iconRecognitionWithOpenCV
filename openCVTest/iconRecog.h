@@ -12,9 +12,16 @@ class iconRecog {
 
 private:
 	int classifyNum = 17;
+
+	// HOG descriptor parameter
+	int WIN = 32;
+	int BLOCK = 16;
+	int STRIDE = 8;
+	int CELL = 8;
+	int BIN = 9;
 	
-	int trainPosDataNum = 65;
-	int totalPosDataNum = 70; //70
+	int trainPosDataNum = 55;
+	int totalPosDataNum = 60; 
 	
 	int trainNegDataNum = 310;
 	int totalNegDataNum = 318; //318
