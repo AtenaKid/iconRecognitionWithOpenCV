@@ -90,12 +90,44 @@ private:
 		"./icon_image/negative/negative/negative"
 	};
 
+	vector<string> testFileName = {
+		"./icon_image/REAL_DATA/aliexpress_back.png",
+		"./icon_image/REAL_DATA/aliexpress_close.png",
+		"./icon_image/REAL_DATA/aliexpress_close2.png",
+		"./icon_image/REAL_DATA/aliexpress_delete.png",
+		"./icon_image/REAL_DATA/aliexpress_love.png",
+		"./icon_image/REAL_DATA/aliexpress_menu.png",
+		"./icon_image/REAL_DATA/aliexpress_menu2.png",
+		"./icon_image/REAL_DATA/aliexpress_minus.png",
+		"./icon_image/REAL_DATA/aliexpress_plus.png",
+		"./icon_image/REAL_DATA/aliexpress_search.png",
+		"./icon_image/REAL_DATA/aliexpress_share.png",
+		"./icon_image/REAL_DATA/aliexpress_shopping.png",
+		"./icon_image/REAL_DATA/aliexpress_shopping2.png",
+		"./icon_image/REAL_DATA/aliexpress_shopping3.png",
+		"./icon_image/REAL_DATA/kakao_profile.png",
+		"./icon_image/REAL_DATA/kakao_settings.png",
+		"./icon_image/REAL_DATA/netflix_menu.png",
+		"./icon_image/REAL_DATA/netflix_search.png",
+		"./icon_image/REAL_DATA/youtube_home.png",
+		"./icon_image/REAL_DATA/youtube_profile.png",
+		"./icon_image/REAL_DATA/youtube_search.png",
+	};
+
 
 public:
 
 	void HOGfeature2XML();
+	
 	void trainingBySVM();
+	
 	void testSVMTrainedData();
+
+	Mat squalize(Mat originMat);
+
+	void testWithRealData();
+	
 	Mat getHogDescriptorVisual(const Mat& color_origImg, vector<float>& descriptorValues, const Size & size);
+	
 
 };

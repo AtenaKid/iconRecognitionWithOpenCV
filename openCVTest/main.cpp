@@ -26,6 +26,8 @@ int main() {
 	
 	icon.testSVMTrainedData(); // 성능평가
 
+	icon.testWithRealData(); // 실제 app 캡쳐화면으로 평가
+
 	return 0;
 
 }

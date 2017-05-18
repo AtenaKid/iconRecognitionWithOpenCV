@@ -29,8 +29,13 @@ void iconRecog::HOGfeature2XML() {
 
 			sprintf_s(FullFileName, "%s%d.png", FileName[i].c_str(), j);
 			
+
 			Mat img, img_gray;
 			img = imread(FullFileName);
+
+			img = squalize(img);
+
+			printf("mat size: %d %d \n", img.cols, img.rows);
 
 			// --------------이미지 전처리-------------------
 
@@ -78,6 +83,8 @@ void iconRecog::HOGfeature2XML() {
 
 		Mat img, img_gray;
 		img = imread(FullFileName);
+
+		img = squalize(img);
 
 		// --------------이미지 전처리-------------------
 
@@ -218,6 +225,8 @@ void iconRecog::testSVMTrainedData() {
 
 			Mat img, img_gray;
 			img = imread(FullFileName);
+			
+			img = squalize(img);
 
 			resize(img, img, Size(WIN, WIN), 0, 0, CV_INTER_LANCZOS4);
 
@@ -261,6 +270,8 @@ void iconRecog::testSVMTrainedData() {
 		Mat img, img_gray;
 		img = imread(FullFileName);
 
+		img = squalize(img);
+
 		resize(img, img, Size(WIN, WIN), 0, 0, CV_INTER_LANCZOS4);
 
 		cvtColor(img, img_gray, CV_RGB2GRAY);
@@ -297,6 +308,63 @@ void iconRecog::testSVMTrainedData() {
 
 	printf("Accuracy: ture vs. false(%d vs %d) --> %0.2f \% \n", trueResult, falseResult, (float) 100 * trueResult/(trueResult+falseResult) );
 }
+
+
+
+
+
+
+
+
+void iconRecog::testWithRealData() {
+
+	Ptr<ml::SVM> svm = ml::SVM::create();
+
+	svm = ml::SVM::load("trainedSVM.xml");
+
+	// -------------- 테스트 데이터를 읽어들이면서 결과 예측 -----------------------------
+
+	
+	for (int i = 0; i < testFileName.size(); i++) {
+
+		Mat img, img_gray;
+		img = imread(testFileName[i]);
+
+		img = squalize(img);
+
+		resize(img, img, Size(WIN, WIN), 0, 0, CV_INTER_LANCZOS4);
+
+		cvtColor(img, img_gray, CV_RGB2GRAY);
+
+		HOGDescriptor d(Size(WIN, WIN), Size(BLOCK, BLOCK), Size(STRIDE, STRIDE), Size(CELL, CELL), BIN); // 40도 단위, 셀사이즈 4X4
+
+		vector<float> descriptorsValues;
+		vector<Point> locations;
+		d.compute(img_gray, descriptorsValues, Size(0, 0), Size(0, 0), locations);
+
+		// ----------Classification----------------
+
+		int row = 1, col = descriptorsValues.size();
+
+		Mat M(row, col, CV_32F);
+		memcpy(&(M.data[0]), descriptorsValues.data(), col * sizeof(float));
+
+		int result = svm->predict(M);
+
+		if (result < classifyNum && result >= 0)
+			printf("%s --> %s \n", testFileName[i].c_str(), iconClass[result].c_str());
+
+		else
+			printf("%s --> nagative \n", testFileName[i].c_str());
+	}
+
+}
+
+
+
+
+
+
 
 Mat iconRecog::getHogDescriptorVisual(const Mat& color_origImg, vector<float>& descriptorValues, const Size & size)
 {
@@ -455,3 +523,48 @@ Mat iconRecog::getHogDescriptorVisual(const Mat& color_origImg, vector<float>& d
 	return visu;
 
 } // get_hogdescriptor_visu
+
+
+Mat iconRecog::squalize(Mat originMat) {
+
+	int col = originMat.cols;
+	int row = originMat.rows;
+
+	if (col == row) {
+		return originMat;
+	}
+	
+	uchar *data = originMat.data;
+	uchar *b, *g, *r;
+
+	// (0,0)의 색상 추출)
+	b = originMat.data + 0;
+	g = originMat.data + 1;
+	r = originMat.data + 2;
+
+	int move;
+	Mat stride, dst;
+	
+	if (col > row) {
+
+		move = (int)((col - row) / 2);
+		
+		stride = (Mat_<float>(2, 3) << 1, 0, 0, 0, 1, move); // move to down
+
+		dst = Mat::zeros(Size(col, col), originMat.type());
+		
+	}else if (row > col) {
+
+		move = (int)((row - col) / 2);
+
+		stride = (Mat_<float>(2, 3) << 1, 0, move, 0, 1, 0); // move to right
+
+		dst = Mat::zeros(Size(row, row), originMat.type());
+
+	}
+
+	warpAffine(originMat, dst, stride, dst.size(), INTER_LANCZOS4, BORDER_CONSTANT, cv::Scalar((int)*b, (int)*g, (int)*r));
+
+	return dst;
+
+}
