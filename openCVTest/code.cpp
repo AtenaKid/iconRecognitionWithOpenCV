@@ -182,10 +182,10 @@ void iconRecog::trainingBySVM() {
 
 	svm->setType(ml::SVM::C_SVC);
 	svm->setKernel(ml::SVM::POLY);
-	svm->setDegree(3);
-	svm->setGamma(2);
+	svm->setDegree(4);
+	svm->setGamma(3);
 	svm->setCoef0(0);
-	svm->setC(200);
+	svm->setC(300);
 //	svm->setNu(0.2);
 	svm->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER, 10000, 1e-3));
 
@@ -354,8 +354,11 @@ void iconRecog::testWithRealData() {
 		if (result < classifyNum && result >= 0)
 			printf("%s --> %s \n", testFileName[i].c_str(), iconClass[result].c_str());
 
-		else
+		else {
 			printf("%s --> nagative \n", testFileName[i].c_str());
+
+		}
+			
 	}
 
 }

@@ -14,10 +14,10 @@ private:
 	int classifyNum = 17;
 
 	// HOG descriptor parameter
-	int WIN = 32;
-	int BLOCK = 16;
-	int STRIDE = 8;
-	int CELL = 8;
+	int WIN = 64;
+	int BLOCK = 32;
+	int STRIDE = 16;
+	int CELL = 16;
 	int BIN = 9;
 	
 	int trainPosDataNum = 55;
@@ -95,16 +95,21 @@ private:
 		"./icon_image/REAL_DATA/aliexpress_close.png",
 		"./icon_image/REAL_DATA/aliexpress_close2.png",
 		"./icon_image/REAL_DATA/aliexpress_delete.png",
+		"./icon_image/REAL_DATA/aliexpress_delete2.png",
 		"./icon_image/REAL_DATA/aliexpress_love.png",
 		"./icon_image/REAL_DATA/aliexpress_menu.png",
 		"./icon_image/REAL_DATA/aliexpress_menu2.png",
+		"./icon_image/REAL_DATA/aliexpress_menu3.png",
 		"./icon_image/REAL_DATA/aliexpress_minus.png",
 		"./icon_image/REAL_DATA/aliexpress_plus.png",
 		"./icon_image/REAL_DATA/aliexpress_search.png",
+		"./icon_image/REAL_DATA/aliexpress_search2.png",
 		"./icon_image/REAL_DATA/aliexpress_share.png",
+		"./icon_image/REAL_DATA/aliexpress_share2.png",
 		"./icon_image/REAL_DATA/aliexpress_shopping.png",
 		"./icon_image/REAL_DATA/aliexpress_shopping2.png",
 		"./icon_image/REAL_DATA/aliexpress_shopping3.png",
+		"./icon_image/REAL_DATA/aliexpress_shopping4.png",
 		"./icon_image/REAL_DATA/kakao_profile.png",
 		"./icon_image/REAL_DATA/kakao_settings.png",
 		"./icon_image/REAL_DATA/netflix_menu.png",
