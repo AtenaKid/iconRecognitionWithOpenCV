@@ -6,13 +6,11 @@ create by rosie
 */
 #include "iconRecog.h"
 
-
 /*
 
 OPEN CV HOG를 통해 각 아이콘의 edge 특징을 xml 파일로 추출
 
 */
-
 
 void iconRecog::HOGfeature2XML() {
 
@@ -33,15 +31,17 @@ void iconRecog::HOGfeature2XML() {
 			Mat img, img_gray;
 			img = imread(FullFileName);
 
-			img = squalize(img);
-
-			printf("mat size: %d %d \n", img.cols, img.rows);
-
 			// --------------이미지 전처리-------------------
 
-			resize(img, img, Size(WIN, WIN), 0, 0, CV_INTER_LANCZOS4);
-
 			cvtColor(img, img_gray, CV_RGB2GRAY);
+			
+			img_gray = crop(img_gray);
+			img_gray = squalize(img_gray);
+
+			resize(img_gray, img_gray, Size(WIN, WIN), 0, 0, CV_INTER_LANCZOS4);
+		
+			//imshow("a", img_gray);
+			//waitKey(0);
 
 			// ------------- 특징 추출 -----------------------
 
@@ -84,13 +84,12 @@ void iconRecog::HOGfeature2XML() {
 		Mat img, img_gray;
 		img = imread(FullFileName);
 
-		img = squalize(img);
-
 		// --------------이미지 전처리-------------------
 
-		resize(img, img, Size(WIN, WIN), 0, 0, CV_INTER_LANCZOS4);
-
 		cvtColor(img, img_gray, CV_RGB2GRAY);
+		img_gray = crop(img_gray);
+		img_gray = squalize(img_gray);
+		resize(img_gray, img_gray, Size(WIN, WIN), 0, 0, CV_INTER_LANCZOS4);
 
 		// ------------- 특징 추출 -----------------------
 
@@ -183,11 +182,11 @@ void iconRecog::trainingBySVM() {
 	svm->setType(ml::SVM::C_SVC);
 	svm->setKernel(ml::SVM::POLY);
 	svm->setDegree(4);
-	svm->setGamma(3);
+	svm->setGamma(4);
 	svm->setCoef0(0);
 	svm->setC(300);
 //	svm->setNu(0.2);
-	svm->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER, 10000, 1e-3));
+	svm->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER, 10000, 1e-6));
 
 	printf("4. Training \n");
 
@@ -197,6 +196,7 @@ void iconRecog::trainingBySVM() {
 	svm->save("trainedSVM.xml");
 
 }
+
 
 /*
 
@@ -226,11 +226,11 @@ void iconRecog::testSVMTrainedData() {
 			Mat img, img_gray;
 			img = imread(FullFileName);
 			
-			img = squalize(img);
-
-			resize(img, img, Size(WIN, WIN), 0, 0, CV_INTER_LANCZOS4);
-
 			cvtColor(img, img_gray, CV_RGB2GRAY);
+			img_gray = crop(img_gray);
+			img_gray = squalize(img_gray);
+
+			resize(img_gray, img_gray, Size(WIN, WIN), 0, 0, CV_INTER_LANCZOS4);
 
 			HOGDescriptor d(Size(WIN, WIN), Size(BLOCK, BLOCK), Size(STRIDE, STRIDE), Size(CELL, CELL), BIN); // 40도 단위, 셀사이즈 4X4
 
@@ -256,7 +256,7 @@ void iconRecog::testSVMTrainedData() {
 				falseResult++;
 				Mat mat = getHogDescriptorVisual(img_gray, descriptorsValues, Size(WIN, WIN));
 				char name[100];
-				sprintf_s(name, "%s%d%s.png", FullFileName, 2, iconClass[result].c_str());
+				sprintf_s(name, "%s%d_%s.png", FileName[i].c_str(), j, iconClass[result].c_str());
 				imwrite(name, mat);
 			}
 
@@ -270,16 +270,18 @@ void iconRecog::testSVMTrainedData() {
 		Mat img, img_gray;
 		img = imread(FullFileName);
 
-		img = squalize(img);
-
-		resize(img, img, Size(WIN, WIN), 0, 0, CV_INTER_LANCZOS4);
-
 		cvtColor(img, img_gray, CV_RGB2GRAY);
+
+		img_gray = crop(img_gray);
+		img_gray = squalize(img_gray);
+
+		resize(img_gray, img_gray, Size(WIN, WIN), 0, 0, CV_INTER_LANCZOS4);
 
 		HOGDescriptor d(Size(WIN, WIN), Size(BLOCK, BLOCK), Size(STRIDE, STRIDE), Size(CELL, CELL), BIN);
 
 		vector<float> descriptorsValues;
 		vector<Point> locations;
+		
 		d.compute(img_gray, descriptorsValues, Size(0, 0), Size(0, 0), locations);
 
 		// ----------Classification----------------
@@ -300,7 +302,7 @@ void iconRecog::testSVMTrainedData() {
 			falseResult++;
 			Mat mat = getHogDescriptorVisual(img_gray, descriptorsValues, Size(WIN, WIN));
 			char name[100];
-			sprintf_s(name, "%s%d%s.png", FullFileName, 2, iconClass[result].c_str());
+			sprintf_s(name, "%s%d_%s.png", FileName[classifyNum].c_str(), j, iconClass[result].c_str());
 			imwrite(name, mat);
 		}
 
@@ -308,10 +310,6 @@ void iconRecog::testSVMTrainedData() {
 
 	printf("Accuracy: ture vs. false(%d vs %d) --> %0.2f \% \n", trueResult, falseResult, (float) 100 * trueResult/(trueResult+falseResult) );
 }
-
-
-
-
 
 
 
@@ -330,11 +328,12 @@ void iconRecog::testWithRealData() {
 		Mat img, img_gray;
 		img = imread(testFileName[i]);
 
-		img = squalize(img);
-
-		resize(img, img, Size(WIN, WIN), 0, 0, CV_INTER_LANCZOS4);
-
 		cvtColor(img, img_gray, CV_RGB2GRAY);
+
+		img_gray = crop(img_gray);
+		img_gray = squalize(img_gray);
+
+		resize(img_gray, img_gray, Size(WIN, WIN), 0, 0, CV_INTER_LANCZOS4);
 
 		HOGDescriptor d(Size(WIN, WIN), Size(BLOCK, BLOCK), Size(STRIDE, STRIDE), Size(CELL, CELL), BIN); // 40도 단위, 셀사이즈 4X4
 
@@ -351,19 +350,11 @@ void iconRecog::testWithRealData() {
 
 		int result = svm->predict(M);
 
-		if (result < classifyNum && result >= 0)
-			printf("%s --> %s \n", testFileName[i].c_str(), iconClass[result].c_str());
-
-		else {
-			printf("%s --> nagative \n", testFileName[i].c_str());
-
-		}
-			
+		printf("%s --> %s \n", testFileName[i].c_str(), iconClass[result].c_str());
+	
 	}
 
 }
-
-
 
 
 
@@ -537,37 +528,257 @@ Mat iconRecog::squalize(Mat originMat) {
 		return originMat;
 	}
 	
-	uchar *data = originMat.data;
+//	uchar *data = originMat.data;
 	uchar *b, *g, *r;
 
-	// (0,0)의 색상 추출)
-	b = originMat.data + 0;
-	g = originMat.data + 1;
-	r = originMat.data + 2;
+	// (0,0)의 색상 추출
+//	b = originMat.data + 0;
+//	g = originMat.data + 1;
+//	r = originMat.data + 2;
 
-	int move;
-	Mat stride, dst;
+	g = originMat.data;
+
+	int move1, move2;
+	int margin = 10;
+	Mat stride1, stride2, dst;
 	
 	if (col > row) {
 
-		move = (int)((col - row) / 2);
-		
-		stride = (Mat_<float>(2, 3) << 1, 0, 0, 0, 1, move); // move to down
+		move1 = (int)((col - row + margin) / 2);
+		move2 = (int)margin / 2;
+		stride1 = (Mat_<float>(2, 3) << 1, 0, 0, 0, 1, move1); // move to down
+		stride2 = (Mat_<float>(2, 3) << 1, 0, move2, 0, 1, 0); // move to right
 
-		dst = Mat::zeros(Size(col, col), originMat.type());
+		dst = Mat::zeros(Size(col+margin, col+margin), originMat.type());
 		
 	}else if (row > col) {
 
-		move = (int)((row - col) / 2);
+		move1 = (int)((row - col + margin) / 2);
+		move2 = (int)margin / 2;
 
-		stride = (Mat_<float>(2, 3) << 1, 0, move, 0, 1, 0); // move to right
+		stride1 = (Mat_<float>(2, 3) << 1, 0, move1, 0, 1, 0); // move to right
+		stride2 = (Mat_<float>(2, 3) << 1, 0, 0, 0, 1, move2); // move to down
 
-		dst = Mat::zeros(Size(row, row), originMat.type());
+		dst = Mat::zeros(Size(row+margin, row+margin), originMat.type());
 
 	}
 
-	warpAffine(originMat, dst, stride, dst.size(), INTER_LANCZOS4, BORDER_CONSTANT, cv::Scalar((int)*b, (int)*g, (int)*r));
-
+	//warpAffine(originMat, dst, stride, dst.size(), INTER_LANCZOS4, BORDER_CONSTANT, cv::Scalar((int)*b, (int)*g, (int)*r));
+	warpAffine(originMat, dst, stride1, dst.size(), INTER_LANCZOS4, BORDER_CONSTANT, cv::Scalar((int)*g));
+	warpAffine(dst, dst, stride2, dst.size(), INTER_LANCZOS4, BORDER_CONSTANT, cv::Scalar((int)*g));
+	
 	return dst;
 
 }
+
+Mat iconRecog::crop(Mat originMat) {
+
+	// originMat is grayScale
+	uchar *data = originMat.data;
+	vector<pair<int, int>> firstIndex;
+	
+	int row = originMat.rows;
+	int col = originMat.cols;
+	int threshold = 50;
+	
+	int current, before;
+
+	//////////// left scanning
+	for (int i = 0; i < row; i++) {
+
+		for (int j = 0; j < col; j++) {
+			if (j == 0) {
+				before = (int)data[i*col + j];
+			}
+			current = (int) data[i*col + j];
+			
+			if (abs(current - before) > threshold) {
+	
+				int r = i;
+				int c = j;
+				
+				firstIndex.push_back({ r,c });
+				
+				break;
+			}
+
+			before = current;
+
+		}
+
+	}
+
+	// find min col index
+	int minCol = col;
+	int minRow = row;
+
+	for (int i = 0; i < firstIndex.size(); i++) {
+
+		int r = firstIndex.at(i).first;
+		int c = firstIndex.at(i).second;
+
+		if (c < minCol) {
+			minCol = c;
+			minRow = r;
+		}
+	}
+
+	int leftCol = minCol;
+
+	firstIndex.clear();
+
+	///////////// top scanning
+
+	for (int i = 0; i < col; i++) {
+
+		for (int j = 0; j < row; j++) {
+			
+			if (j == 0) {
+				before = (int)data[j*col + i];
+			}
+
+			current = (int) data[j*col + i];
+
+			if (abs(current - before) > threshold) {
+				
+				int r = (int) (j*col + i) / col;
+				int c = (int)(j*col + i) % col;
+
+				firstIndex.push_back({ r, c });
+				break;
+			}
+
+			before = current;
+		}
+
+	}
+
+	// find min row index
+	
+	minRow = row;
+	minCol = col;
+
+	for (int i = 0; i < firstIndex.size(); i++) {
+
+		int r = firstIndex.at(i).first;
+		int c = firstIndex.at(i).second;
+
+		if (r < minRow) {
+			minRow = r;
+			minCol = c;
+		}
+
+	}
+
+	int leftRow = minRow;
+
+	firstIndex.clear();
+
+	////////////// right scanning
+
+	for (int i = 0; i < row; i++) {
+
+		for (int j = col-1; j >= 0 ; j--) {
+			if (j == col-1) {
+				before = (int)data[i*col + j];
+			}
+			current = (int) data[i*col + j];
+
+			if (abs(current - before) > threshold) {
+				
+				int r = (int)(i*col + j) / col;
+				int c = (int)(i*col + j) % col;
+
+				firstIndex.push_back({ r, c });
+
+				break;
+			}
+
+			before = current;
+		}
+
+	}
+
+	// find max col index
+
+	int maxCol = 0;
+	int maxRow = 0;
+
+	for (int i = 0; i < firstIndex.size(); i++) {
+
+		int r = firstIndex.at(i).first;
+		int c = firstIndex.at(i).second;
+
+		if (maxCol < c) {
+			maxCol = c;
+			maxRow = r;
+		}
+	}
+
+	int rightCol = maxCol;
+
+	firstIndex.clear();
+
+	////////////// bottom scannig;
+
+	for (int i = 0; i < col; i++) {
+
+
+		for (int j = row-1; j >= 0 ; j--) {
+			if (j == row-1) {
+				before = (int)data[col*j + i];
+			}
+
+			current = (int) data[col*j + i];
+
+			if (abs(current - before) > threshold) {
+				
+				int r = (int)(col*j + i) / col;
+				int c = (int)(col*j + i) % col;
+
+				firstIndex.push_back({ r, c });
+				break;
+			}
+
+			before = current;
+		}
+
+	}
+
+	// find max row index
+	
+	maxRow = 0;
+	maxCol = 0;
+
+	for (int i = 0; i < firstIndex.size(); i++) {
+
+		int r = firstIndex.at(i).first;
+		int c = firstIndex.at(i).second;
+
+
+		if (maxRow < r) {
+			maxRow = r;
+			maxCol = c;
+		}
+	}
+
+	int rightRow = maxRow;
+
+	// 관심영역 설정 (set ROI (X, Y, W, H)).
+
+	if (leftCol == col || leftRow == row || rightCol - leftCol <= 0 || rightRow - leftRow <= 0 ) {
+		printf("cannot cropping\n");
+		return originMat;
+	}
+
+	Rect rect;
+	rect = Rect(leftCol, leftRow, rightCol - leftCol, rightRow - leftRow);
+
+	Mat cropMat = originMat(rect);
+	
+	return cropMat;
+
+}
+
+
+

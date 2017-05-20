@@ -14,10 +14,10 @@ private:
 	int classifyNum = 17;
 
 	// HOG descriptor parameter
-	int WIN = 64;
-	int BLOCK = 32;
-	int STRIDE = 16;
-	int CELL = 16;
+	int WIN = 32;
+	int BLOCK = 16;
+	int STRIDE = 8;
+	int CELL = 8;
 	int BIN = 9;
 	
 	int trainPosDataNum = 55;
@@ -129,6 +129,8 @@ public:
 	void testSVMTrainedData();
 
 	Mat squalize(Mat originMat);
+
+	Mat crop(Mat originMat);
 
 	void testWithRealData();
 	
