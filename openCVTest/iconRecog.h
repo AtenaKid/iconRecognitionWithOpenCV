@@ -23,6 +23,8 @@ private:
 	int trainPosDataNum = 55;
 	int totalPosDataNum = 60; 
 	
+	int background = 0;
+
 	int trainNegDataNum = 310;
 	int totalNegDataNum = 318; //318
 	
@@ -100,22 +102,20 @@ private:
 		"./icon_image/REAL_DATA/aliexpress_menu.png",
 		"./icon_image/REAL_DATA/aliexpress_menu2.png",
 		"./icon_image/REAL_DATA/aliexpress_menu3.png",
+		"./icon_image/REAL_DATA/aliexpress_menu4.png",
 		"./icon_image/REAL_DATA/aliexpress_minus.png",
 		"./icon_image/REAL_DATA/aliexpress_plus.png",
+		"./icon_image/REAL_DATA/aliexpress_plus2.png",
 		"./icon_image/REAL_DATA/aliexpress_search.png",
-		"./icon_image/REAL_DATA/aliexpress_search2.png",
 		"./icon_image/REAL_DATA/aliexpress_share.png",
-		"./icon_image/REAL_DATA/aliexpress_share2.png",
 		"./icon_image/REAL_DATA/aliexpress_shopping.png",
 		"./icon_image/REAL_DATA/aliexpress_shopping2.png",
 		"./icon_image/REAL_DATA/aliexpress_shopping3.png",
-		"./icon_image/REAL_DATA/aliexpress_shopping4.png",
 		"./icon_image/REAL_DATA/kakao_profile.png",
-		"./icon_image/REAL_DATA/kakao_settings.png",
 		"./icon_image/REAL_DATA/netflix_menu.png",
 		"./icon_image/REAL_DATA/netflix_search.png",
+		"./icon_image/REAL_DATA/outlook_menu.png",
 		"./icon_image/REAL_DATA/youtube_home.png",
-		"./icon_image/REAL_DATA/youtube_profile.png",
 		"./icon_image/REAL_DATA/youtube_search.png",
 	};
 

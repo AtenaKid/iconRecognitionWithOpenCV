@@ -40,8 +40,8 @@ void iconRecog::HOGfeature2XML() {
 
 			resize(img_gray, img_gray, Size(WIN, WIN), 0, 0, CV_INTER_LANCZOS4);
 		
-			//imshow("a", img_gray);
-			//waitKey(0);
+			imshow("a", img_gray);
+			waitKey(0);
 
 			// ------------- 특징 추출 -----------------------
 
@@ -335,6 +335,7 @@ void iconRecog::testWithRealData() {
 
 		resize(img_gray, img_gray, Size(WIN, WIN), 0, 0, CV_INTER_LANCZOS4);
 
+	
 		HOGDescriptor d(Size(WIN, WIN), Size(BLOCK, BLOCK), Size(STRIDE, STRIDE), Size(CELL, CELL), BIN); // 40도 단위, 셀사이즈 4X4
 
 		vector<float> descriptorsValues;
@@ -349,6 +350,10 @@ void iconRecog::testWithRealData() {
 		memcpy(&(M.data[0]), descriptorsValues.data(), col * sizeof(float));
 
 		int result = svm->predict(M);
+
+		//Mat hog = getHogDescriptorVisual(img_gray, descriptorsValues, Size(WIN, WIN));
+		//imshow("a", hog);
+		//waitKey(0);
 
 		printf("%s --> %s \n", testFileName[i].c_str(), iconClass[result].c_str());
 	
@@ -529,17 +534,15 @@ Mat iconRecog::squalize(Mat originMat) {
 	}
 	
 //	uchar *data = originMat.data;
-	uchar *b, *g, *r;
+//	uchar *b, *g, *r;
 
 	// (0,0)의 색상 추출
 //	b = originMat.data + 0;
 //	g = originMat.data + 1;
 //	r = originMat.data + 2;
 
-	g = originMat.data;
-
 	int move1, move2;
-	int margin = 10;
+	int margin = 8;
 	Mat stride1, stride2, dst;
 	
 	if (col > row) {
@@ -564,8 +567,8 @@ Mat iconRecog::squalize(Mat originMat) {
 	}
 
 	//warpAffine(originMat, dst, stride, dst.size(), INTER_LANCZOS4, BORDER_CONSTANT, cv::Scalar((int)*b, (int)*g, (int)*r));
-	warpAffine(originMat, dst, stride1, dst.size(), INTER_LANCZOS4, BORDER_CONSTANT, cv::Scalar((int)*g));
-	warpAffine(dst, dst, stride2, dst.size(), INTER_LANCZOS4, BORDER_CONSTANT, cv::Scalar((int)*g));
+	warpAffine(originMat, dst, stride1, dst.size(), INTER_LANCZOS4, BORDER_CONSTANT, cv::Scalar(background));
+	warpAffine(dst, dst, stride2, dst.size(), INTER_LANCZOS4, BORDER_CONSTANT, cv::Scalar(background));
 	
 	return dst;
 
@@ -579,11 +582,11 @@ Mat iconRecog::crop(Mat originMat) {
 	
 	int row = originMat.rows;
 	int col = originMat.cols;
-	int threshold = 50;
+	int threshold = 30;
 	
 	int current, before;
 
-	//////////// left scanning
+	//////////// left scanning /////////////
 	for (int i = 0; i < row; i++) {
 
 		for (int j = 0; j < col; j++) {
@@ -597,6 +600,8 @@ Mat iconRecog::crop(Mat originMat) {
 				int r = i;
 				int c = j;
 				
+				background = before; // squalize background 초기화
+
 				firstIndex.push_back({ r,c });
 				
 				break;
@@ -627,7 +632,7 @@ Mat iconRecog::crop(Mat originMat) {
 
 	firstIndex.clear();
 
-	///////////// top scanning
+	///////////// top scanning //////////////
 
 	for (int i = 0; i < col; i++) {
 
@@ -674,7 +679,7 @@ Mat iconRecog::crop(Mat originMat) {
 
 	firstIndex.clear();
 
-	////////////// right scanning
+	////////////// right scanning //////////////
 
 	for (int i = 0; i < row; i++) {
 
@@ -719,7 +724,7 @@ Mat iconRecog::crop(Mat originMat) {
 
 	firstIndex.clear();
 
-	////////////// bottom scannig;
+	////////////// bottom scannig //////////////
 
 	for (int i = 0; i < col; i++) {
 
