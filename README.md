@@ -1,4 +1,4 @@
-# iconRecognition
+### iconRecognition model
 
-detect edge using hog feature
-classify using svm
+# detect edge using hog feature
+# classify using svm
